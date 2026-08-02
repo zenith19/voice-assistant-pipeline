@@ -60,6 +60,13 @@ function b64ToBlobUrl(b64, mime) {
   return URL.createObjectURL(new Blob([arr], { type: mime }));
 }
 
+function el(tag, opts = {}) {
+  const node = document.createElement(tag);
+  if (opts.className) node.className = opts.className;
+  if (opts.text !== undefined) node.textContent = opts.text;
+  return node;
+}
+
 async function sendAudio(blob) {
   status.textContent = "Thinking...";
   const form = new FormData();
@@ -72,21 +79,28 @@ async function sendAudio(blob) {
   }
   const data = await res.json();
 
-  const turn = document.createElement("div");
-  turn.className = "turn";
-  let actionsHtml = "";
+  const turn = el("div", { className: "turn" });
+  turn.appendChild(el("div", { className: "label", text: "You said" }));
+  turn.appendChild(el("div", { text: data.transcript }));
+
   if (data.actions && data.actions.length) {
-    actionsHtml = `<div class="actions">Tools used: ${data.actions
-      .map(a => `<b>${a.tool}</b>(${JSON.stringify(a.args)}) -> ${JSON.stringify(a.result)}`)
-      .join("<br>")}</div>`;
+    const actionsDiv = el("div", { className: "actions" });
+    actionsDiv.appendChild(document.createTextNode("Tools used: "));
+    data.actions.forEach((a, i) => {
+      if (i > 0) actionsDiv.appendChild(document.createElement("br"));
+      actionsDiv.appendChild(el("b", { text: a.tool }));
+      actionsDiv.appendChild(document.createTextNode(
+        `(${JSON.stringify(a.args)}) -> ${JSON.stringify(a.result)}`
+      ));
+    });
+    turn.appendChild(actionsDiv);
   }
-  turn.innerHTML = `
-    <div class="label">You said</div>
-    <div>${data.transcript}</div>
-    ${actionsHtml}
-    <div class="label" style="margin-top:8px">Assistant</div>
-    <div>${data.reply}</div>
-  `;
+
+  const replyLabel = el("div", { className: "label", text: "Assistant" });
+  replyLabel.style.marginTop = "8px";
+  turn.appendChild(replyLabel);
+  turn.appendChild(el("div", { text: data.reply }));
+
   log.prepend(turn);
 
   player.src = b64ToBlobUrl(data.audio_base64, "audio/mpeg");
