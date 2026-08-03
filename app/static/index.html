@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Voice Assistant</title>
+<style>
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 640px;
+    margin: 60px auto;
+    text-align: center;
+    color: #222;
+  }
+  button {
+    font-size: 1.1rem;
+    padding: 14px 28px;
+    margin: 8px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+  }
+  #micBtn { background: #2563eb; color: white; }
+  #micBtn.recording { background: #dc2626; }
+  #resetBtn { background: #e5e7eb; color: #222; }
+  #status { color: #555; min-height: 1.4em; }
+  .turn {
+    text-align: left;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin: 14px 0;
+  }
+  .turn .label { font-weight: 600; font-size: 0.85rem; color: #666; }
+  .actions { font-size: 0.85rem; color: #444; background: #f9fafb; padding: 8px 12px; border-radius: 8px; margin-top: 6px; }
+</style>
+</head>
+<body>
+  <h1>Voice Assistant</h1>
+  <p id="status">Click the mic and speak</p>
+  <button id="micBtn">Record</button>
+  <button id="resetBtn">Reset conversation</button>
+  <audio id="player" hidden></audio>
+  <div id="log"></div>
+
+<script>
+const micBtn = document.getElementById("micBtn");
+const resetBtn = document.getElementById("resetBtn");
+const status = document.getElementById("status");
+const log = document.getElementById("log");
+const player = document.getElementById("player");
+
+let mediaRecorder = null;
+let chunks = [];
+let recording = false;
+
+function b64ToBlobUrl(b64, mime) {
+  const bytes = atob(b64);
+  const arr = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+  return URL.createObjectURL(new Blob([arr], { type: mime }));
+}
+
+function el(tag, opts = {}) {
+  const node = document.createElement(tag);
+  if (opts.className) node.className = opts.className;
+  if (opts.text !== undefined) node.textContent = opts.text;
+  return node;
+}
+
+async function sendAudio(blob) {
+  status.textContent = "Thinking...";
+  const form = new FormData();
+  form.append("audio", blob, "input.webm");
+
+  const res = await fetch("/chat", { method: "POST", body: form });
+  if (!res.ok) {
+    status.textContent = `Error: ${res.status}`;
+    return;
+  }
+  const data = await res.json();
+
+  const turn = el("div", { className: "turn" });
+  turn.appendChild(el("div", { className: "label", text: "You said" }));
+  turn.appendChild(el("div", { text: data.transcript }));
+
+  if (data.actions && data.actions.length) {
+    const actionsDiv = el("div", { className: "actions" });
+    actionsDiv.appendChild(document.createTextNode("Tools used: "));
+    data.actions.forEach((a, i) => {
+      if (i > 0) actionsDiv.appendChild(document.createElement("br"));
+      actionsDiv.appendChild(el("b", { text: a.tool }));
+      actionsDiv.appendChild(document.createTextNode(
+        `(${JSON.stringify(a.args)}) -> ${JSON.stringify(a.result)}`
+      ));
+    });
+    turn.appendChild(actionsDiv);
+  }
+
+  const replyLabel = el("div", { className: "label", text: "Assistant" });
+  replyLabel.style.marginTop = "8px";
+  turn.appendChild(replyLabel);
+  turn.appendChild(el("div", { text: data.reply }));
+
+  log.prepend(turn);
+
+  player.src = b64ToBlobUrl(data.audio_base64, "audio/wav");
+  player.hidden = false;
+  await player.play();
+  status.textContent = "Click the mic and speak";
+}
+
+micBtn.addEventListener("click", async () => {
+  if (!recording) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    chunks = [];
+    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      sendAudio(new Blob(chunks, { type: "audio/webm" }));
+    };
+    mediaRecorder.start();
+    recording = true;
+    micBtn.textContent = "Stop";
+    micBtn.classList.add("recording");
+    status.textContent = "Listening...";
+  } else {
+    mediaRecorder.stop();
+    recording = false;
+    micBtn.textContent = "Record";
+    micBtn.classList.remove("recording");
+  }
+});
+
+resetBtn.addEventListener("click", async () => {
+  await fetch("/reset", { method: "POST" });
+  log.innerHTML = "";
+  status.textContent = "Conversation reset. Click the mic and speak";
+});
+</script>
+</body>
+</html>
