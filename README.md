@@ -11,12 +11,15 @@ to call a tool (time, calculator, weather, reminders) to answer, and speaks the 
 mic (browser) -> POST /chat -----------------------------------> speech reply
                      |
                      v
-             app/pipeline/asr.py   (Whisper: audio -> text)
+             app/pipeline/asr.py   (local faster-whisper: audio -> text)
                      v
-             app/pipeline/llm.py   (gpt-4o-mini: decides + calls tools in app/pipeline/tools.py)
+             app/pipeline/llm.py   (local Ollama model: decides + calls tools in app/pipeline/tools.py)
                      v
-             app/pipeline/tts.py   (TTS: text -> audio)
+             app/pipeline/tts.py   (local espeak-ng: text -> audio)
 ```
+
+Runs fully locally, no API key or billing required: ASR via `faster-whisper` (CPU), the LLM
+via [Ollama](https://ollama.com) serving `qwen2.5:1.5b`, and TTS via `espeak-ng`.
 
 - `app/main.py` - FastAPI app, wires the three stages together in the `/chat` endpoint
 - `app/pipeline/asr.py` - speech-to-text
@@ -29,11 +32,18 @@ mic (browser) -> POST /chat -----------------------------------> speech reply
 
 ## Setup
 
+Prerequisites (installed once, outside the venv):
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull qwen2.5:1.5b
+sudo apt install -y espeak-ng
+```
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # then put your OPENAI_API_KEY in .env
 ```
 
 ## Run

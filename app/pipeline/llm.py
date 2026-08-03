@@ -7,16 +7,22 @@ from . import tools
 
 SYSTEM_PROMPT = (
     "You are a helpful voice assistant. Keep spoken replies short and conversational. "
-    "Use the available tools when the request needs a real action or lookup "
-    "(time, math, weather, reminders) instead of guessing at an answer."
+    "You do not know the current date, time, weather, or any live data from your own "
+    "knowledge - your training data is stale and any date/time/weather you might recall "
+    "or guess is WRONG. For any question about the current time or date, math, weather, "
+    "or reminders, you MUST call the matching tool (get_current_time, calculate, "
+    "get_weather, set_reminder) and base your answer only on its result. "
+    "Never invent or guess a date, time, or numeric answer yourself."
 )
 
-MODEL = "gpt-4o-mini"
+MODEL = "qwen2.5:1.5b"
 MAX_TOOL_ROUNDS = 4
 MAX_HISTORY_MESSAGES = 20
 
+client = OpenAI(base_url="http://127.0.0.1:11434/v1", api_key="ollama")
 
-def run_turn(client: OpenAI, history: list[dict], user_text: str) -> dict:
+
+def run_turn(history: list[dict], user_text: str) -> dict:
     """Run one voice turn. Mutates `history` in place with the new user/assistant messages."""
     messages = [{"role": "system", "content": SYSTEM_PROMPT}, *history, {"role": "user", "content": user_text}]
     actions = []
@@ -26,6 +32,7 @@ def run_turn(client: OpenAI, history: list[dict], user_text: str) -> dict:
             model=MODEL,
             messages=messages,
             tools=tools.TOOLS,
+            temperature=0.1,
         )
         message = response.choices[0].message
 

@@ -1,11 +1,11 @@
-"""TTS stage: reply text -> spoken audio bytes via OpenAI TTS."""
-from openai import OpenAI
+"""TTS stage: reply text -> spoken audio bytes via local espeak-ng."""
+import subprocess
 
 
-def synthesize(client: OpenAI, text: str, voice: str = "alloy") -> bytes:
-    response = client.audio.speech.create(
-        model="tts-1",
-        voice=voice,
-        input=text,
+def synthesize(text: str) -> bytes:
+    result = subprocess.run(
+        ["espeak-ng", "--stdout", text],
+        capture_output=True,
+        check=True,
     )
-    return response.content
+    return result.stdout

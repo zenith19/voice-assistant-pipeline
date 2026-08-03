@@ -1,20 +1,15 @@
 """FastAPI app wiring the ASR -> LLM(+tools) -> TTS pipeline together."""
 import base64
 
-from dotenv import load_dotenv
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from openai import OpenAI
 
 from app.pipeline import asr, llm, tts
-
-load_dotenv()
 
 app = FastAPI(title="Voice Assistant Pipeline")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-client = OpenAI()
 conversation_history: list[dict] = []
 
 
@@ -27,11 +22,9 @@ def index():
 async def chat(audio: UploadFile = File(...)):
     audio_bytes = await audio.read()
 
-    transcript = asr.transcribe(
-        client, audio.filename or "input.webm", audio_bytes, audio.content_type or "audio/webm"
-    )
-    turn = llm.run_turn(client, conversation_history, transcript)
-    speech_bytes = tts.synthesize(client, turn["reply"])
+    transcript = asr.transcribe(audio_bytes)
+    turn = llm.run_turn(conversation_history, transcript)
+    speech_bytes = tts.synthesize(turn["reply"])
 
     return {
         "transcript": transcript,

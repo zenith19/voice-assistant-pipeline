@@ -103,7 +103,7 @@ async function sendAudio(blob) {
 
   log.prepend(turn);
 
-  player.src = b64ToBlobUrl(data.audio_base64, "audio/mpeg");
+  player.src = b64ToBlobUrl(data.audio_base64, "audio/wav");
   player.hidden = false;
   await player.play();
   status.textContent = "Click the mic and speak";
