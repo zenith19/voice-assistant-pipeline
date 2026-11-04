@@ -26,6 +26,20 @@ Working end-to-end on a local dev machine:
 - A stored-XSS bug in the mic UI (raw `innerHTML` interpolation of
   transcript/reply/tool output) was found and fixed by building DOM nodes
   with `textContent` instead.
+- Hardening pass (Nov 2026), each covered by a unit test:
+  - `/chat` was `async def` but called blocking ASR/LLM/TTS, stalling the
+    event loop; it is now a sync handler run in FastAPI's threadpool.
+  - Malformed tool-call JSON, wrong arguments, or an unknown tool from the
+    small model used to raise a 500; they are now returned to the model as
+    tool errors so it can recover.
+  - Silent/noise-only recordings no longer reach the LLM (`vad_filter` plus a
+    `no_speech_prob` cut-off); the user gets a spoken reprompt instead.
+  - `calculate("9 ** 9 ** 9")` hung the server; exponents are now capped.
+  - espeak-ng received the reply as argv, so text starting with `-` was parsed
+    as a flag; text now goes in on stdin.
+  - Turns that exhaust the tool-call rounds are now saved to history.
+  - Dependencies are pinned. `av` is pinned below 19 because av 19 broke
+    faster-whisper 1.2.1's audio decoding.
 
 ### Known limitations
 

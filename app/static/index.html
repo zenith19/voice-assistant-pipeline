@@ -69,14 +69,23 @@ function el(tag, opts = {}) {
 
 async function sendAudio(blob) {
   status.textContent = "Thinking...";
+  micBtn.disabled = true;
+  try {
+    await handleTurn(blob);
+    status.textContent = "Click the mic and speak";
+  } catch (err) {
+    status.textContent = `Error: ${err.message}`;
+  } finally {
+    micBtn.disabled = false;
+  }
+}
+
+async function handleTurn(blob) {
   const form = new FormData();
   form.append("audio", blob, "input.webm");
 
   const res = await fetch("/chat", { method: "POST", body: form });
-  if (!res.ok) {
-    status.textContent = `Error: ${res.status}`;
-    return;
-  }
+  if (!res.ok) throw new Error(`server returned ${res.status}`);
   const data = await res.json();
 
   const turn = el("div", { className: "turn" });
@@ -103,15 +112,26 @@ async function sendAudio(blob) {
 
   log.prepend(turn);
 
+  if (player.src) URL.revokeObjectURL(player.src);
   player.src = b64ToBlobUrl(data.audio_base64, "audio/wav");
   player.hidden = false;
-  await player.play();
-  status.textContent = "Click the mic and speak";
+  try {
+    await player.play();
+  } catch (err) {
+    // Autoplay can be blocked; the visible <audio> controls still let the user play it.
+    player.controls = true;
+  }
 }
 
 micBtn.addEventListener("click", async () => {
   if (!recording) {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      status.textContent = `Microphone unavailable: ${err.message}`;
+      return;
+    }
     mediaRecorder = new MediaRecorder(stream);
     chunks = [];
     mediaRecorder.ondataavailable = e => chunks.push(e.data);
@@ -133,8 +153,14 @@ micBtn.addEventListener("click", async () => {
 });
 
 resetBtn.addEventListener("click", async () => {
-  await fetch("/reset", { method: "POST" });
-  log.innerHTML = "";
+  try {
+    const res = await fetch("/reset", { method: "POST" });
+    if (!res.ok) throw new Error(`server returned ${res.status}`);
+  } catch (err) {
+    status.textContent = `Reset failed: ${err.message}`;
+    return;
+  }
+  log.replaceChildren();
   status.textContent = "Conversation reset. Click the mic and speak";
 });
 </script>

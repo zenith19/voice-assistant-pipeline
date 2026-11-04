@@ -46,6 +46,10 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Settings (model names, Ollama URL, Whisper size, no-speech threshold) are read from environment
+variables with local defaults - see `app/config.py`. For example, `LLM_MODEL=qwen2.5:3b` swaps
+the model without code changes.
+
 ## Run
 
 ```bash
@@ -62,6 +66,20 @@ Try things like:
 - "Remind me to call mom in 20 minutes."
 
 Click **Reset conversation** to clear the assistant's memory of the current session.
+
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+pytest
+```
+
+The unit tests stub the ASR and LLM stages (a fake OpenAI-compatible client replays scripted
+model responses), so they run without Ollama or a Whisper model. They cover the tool-calling
+loop's failure paths (malformed tool JSON, wrong arguments, unknown tools, running out of tool
+rounds), silence handling, and that concurrent requests don't block each other. CI runs the same
+checks on every push and pull request.
 
 ## Extending
 

@@ -24,11 +24,19 @@ _MOCK_WEATHER = {
 }
 
 
+# Without a cap, "9 ** 9 ** 9" makes Python compute a ~370-million-digit integer and
+# hangs the request (and the worker thread) indefinitely.
+MAX_EXPONENT = 100
+
+
 def _eval_node(node: ast.AST) -> float:
-    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
         return node.value
     if isinstance(node, ast.BinOp) and type(node.op) in _ALLOWED_OPERATORS:
-        return _ALLOWED_OPERATORS[type(node.op)](_eval_node(node.left), _eval_node(node.right))
+        left, right = _eval_node(node.left), _eval_node(node.right)
+        if isinstance(node.op, ast.Pow) and abs(right) > MAX_EXPONENT:
+            raise ValueError(f"exponent too large (max {MAX_EXPONENT})")
+        return _ALLOWED_OPERATORS[type(node.op)](left, right)
     if isinstance(node, ast.UnaryOp) and type(node.op) in _ALLOWED_OPERATORS:
         return _ALLOWED_OPERATORS[type(node.op)](_eval_node(node.operand))
     raise ValueError(f"unsupported expression near: {ast.dump(node)}")
@@ -39,7 +47,7 @@ def calculate(expression: str) -> dict:
     try:
         result = _eval_node(ast.parse(expression, mode="eval").body)
         return {"expression": expression, "result": result}
-    except Exception as exc:
+    except (SyntaxError, ValueError, ZeroDivisionError, OverflowError, TypeError) as exc:
         return {"expression": expression, "error": str(exc)}
 
 
