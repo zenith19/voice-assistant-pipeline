@@ -50,6 +50,25 @@ Settings (model names, Ollama URL, Whisper size, no-speech threshold) are read f
 variables with local defaults - see `app/config.py`. For example, `LLM_MODEL=qwen2.5:3b` swaps
 the model without code changes.
 
+### LLM providers
+
+`LLM_PROVIDER` selects where the model runs; the agent loop and tools are the same for all three.
+
+| `LLM_PROVIDER` | Default `LLM_MODEL` | Notes |
+|---|---|---|
+| `ollama` (default) | `qwen2.5:1.5b` | Fully local and offline |
+| `bedrock` | `eu.amazon.nova-lite-v1:0` | Amazon Bedrock Converse API; uses the standard AWS credential chain (`AWS_PROFILE`, env vars), region `AWS_REGION` (default `eu-central-1`) |
+| `openai` | `gpt-4o-mini` | Any OpenAI-compatible endpoint via `LLM_BASE_URL` / `LLM_API_KEY` |
+
+```bash
+LLM_PROVIDER=bedrock AWS_PROFILE=default uvicorn app.main:app
+```
+
+Only the transcript text is sent to the hosted model; audio, ASR, and TTS stay on the machine.
+`app/pipeline/bedrock.py` translates the OpenAI-style messages and tool calls the agent loop uses
+into Converse requests (system prompt as a separate field, tool results as `toolResult` blocks
+in a user message, same-role messages merged) and maps the response back.
+
 ## Run
 
 ```bash

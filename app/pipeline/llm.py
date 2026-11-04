@@ -25,6 +25,11 @@ FALLBACK_REPLY = "Sorry, I couldn't finish that after a few tries."
 
 @lru_cache(maxsize=1)
 def _default_client():
+    if config.LLM_PROVIDER == "bedrock":
+        from .bedrock import BedrockChatClient
+
+        return BedrockChatClient(region=config.AWS_REGION, max_tokens=config.LLM_MAX_TOKENS)
+
     from openai import OpenAI
 
     return OpenAI(base_url=config.LLM_BASE_URL, api_key=config.LLM_API_KEY)
