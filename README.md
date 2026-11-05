@@ -46,6 +46,29 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Settings (model names, Ollama URL, Whisper size, no-speech threshold) are read from environment
+variables with local defaults - see `app/config.py`. For example, `LLM_MODEL=qwen2.5:3b` swaps
+the model without code changes.
+
+### LLM providers
+
+`LLM_PROVIDER` selects where the model runs; the agent loop and tools are the same for all three.
+
+| `LLM_PROVIDER` | Default `LLM_MODEL` | Notes |
+|---|---|---|
+| `ollama` (default) | `qwen2.5:1.5b` | Fully local and offline |
+| `bedrock` | `eu.amazon.nova-lite-v1:0` | Amazon Bedrock Converse API; uses the standard AWS credential chain (`AWS_PROFILE`, env vars), region `AWS_REGION` (default `eu-central-1`) |
+| `openai` | `gpt-4o-mini` | Any OpenAI-compatible endpoint via `LLM_BASE_URL` / `LLM_API_KEY` |
+
+```bash
+LLM_PROVIDER=bedrock AWS_PROFILE=default uvicorn app.main:app
+```
+
+Only the transcript text is sent to the hosted model; audio, ASR, and TTS stay on the machine.
+`app/pipeline/bedrock.py` translates the OpenAI-style messages and tool calls the agent loop uses
+into Converse requests (system prompt as a separate field, tool results as `toolResult` blocks
+in a user message, same-role messages merged) and maps the response back.
+
 ## Run
 
 ```bash
@@ -62,6 +85,20 @@ Try things like:
 - "Remind me to call mom in 20 minutes."
 
 Click **Reset conversation** to clear the assistant's memory of the current session.
+
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+pytest
+```
+
+The unit tests stub the ASR and LLM stages (a fake OpenAI-compatible client replays scripted
+model responses), so they run without Ollama or a Whisper model. They cover the tool-calling
+loop's failure paths (malformed tool JSON, wrong arguments, unknown tools, running out of tool
+rounds), silence handling, and that concurrent requests don't block each other. CI runs the same
+checks on every push and pull request.
 
 ## Extending
 
