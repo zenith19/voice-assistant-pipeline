@@ -31,6 +31,7 @@
     margin: 14px 0;
   }
   .turn .label { font-weight: 600; font-size: 0.85rem; color: #666; }
+  .timings { font-size: 0.75rem; color: #6b7280; margin-top: 8px; font-variant-numeric: tabular-nums; }
   .actions { font-size: 0.85rem; color: #444; background: #f9fafb; padding: 8px 12px; border-radius: 8px; margin-top: 6px; }
 </style>
 </head>
@@ -109,6 +110,15 @@ async function handleTurn(blob) {
   replyLabel.style.marginTop = "8px";
   turn.appendChild(replyLabel);
   turn.appendChild(el("div", { text: data.reply }));
+
+  if (data.timings) {
+    const t = data.timings;
+    const sec = ms => `${(ms / 1000).toFixed(2)}s`;
+    const parts = [`ASR ${sec(t.asr_ms)}`, `LLM ${sec(t.llm_ms)} (${t.llm_rounds_ms.length} round${t.llm_rounds_ms.length === 1 ? "" : "s"})`];
+    if (t.tools_ms) parts.push(`tools ${sec(t.tools_ms)}`);
+    parts.push(`TTS ${sec(t.tts_ms)}`, `total ${sec(t.total_ms)}`);
+    turn.appendChild(el("div", { className: "timings", text: parts.join(" · ") }));
+  }
 
   log.prepend(turn);
 

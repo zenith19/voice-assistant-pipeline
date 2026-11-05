@@ -7,14 +7,15 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import main
+from app.pipeline import turn
 
 
 @pytest.fixture(autouse=True)
 def stub_stages(monkeypatch):
     main.conversation_history.clear()
-    monkeypatch.setattr(main.tts, "synthesize", lambda text: b"RIFFfake")
-    monkeypatch.setattr(main.llm, "run_turn",
-                        lambda history, text: {"reply": f"echo: {text}", "actions": []})
+    monkeypatch.setattr(turn.tts, "synthesize", lambda text: b"RIFFfake")
+    monkeypatch.setattr(turn.llm, "run_turn", lambda history, text: {
+        "reply": f"echo: {text}", "actions": [], "timings": {"llm_rounds_ms": [12.0], "tools_ms": 0.0}})
 
 
 def post_audio(client):
@@ -22,23 +23,26 @@ def post_audio(client):
 
 
 def test_chat_returns_transcript_reply_and_audio(monkeypatch):
-    monkeypatch.setattr(main.asr, "transcribe", lambda audio: "hello")
+    monkeypatch.setattr(turn.asr, "transcribe", lambda audio: "hello")
     body = post_audio(TestClient(main.app)).json()
 
     assert body["transcript"] == "hello"
     assert body["reply"] == "echo: hello"
     assert base64.b64decode(body["audio_base64"]) == b"RIFFfake"
+    timings = body["timings"]
+    assert timings["llm_ms"] == 12.0
+    assert {"asr_ms", "tts_ms", "total_ms", "llm_rounds_ms", "tools_ms"} <= timings.keys()
 
 
 def test_silence_skips_llm(monkeypatch):
-    monkeypatch.setattr(main.asr, "transcribe", lambda audio: "")
+    monkeypatch.setattr(turn.asr, "transcribe", lambda audio: "")
 
     def fail(*args):
         raise AssertionError("LLM must not be called for empty transcripts")
 
-    monkeypatch.setattr(main.llm, "run_turn", fail)
+    monkeypatch.setattr(turn.llm, "run_turn", fail)
     body = post_audio(TestClient(main.app)).json()
-    assert body["reply"] == main.NO_SPEECH_REPLY
+    assert body["reply"] == turn.NO_SPEECH_REPLY
 
 
 def test_requests_do_not_block_each_other(monkeypatch):
@@ -49,7 +53,7 @@ def test_requests_do_not_block_each_other(monkeypatch):
         time.sleep(delay)
         return "hello"
 
-    monkeypatch.setattr(main.asr, "transcribe", slow_transcribe)
+    monkeypatch.setattr(turn.asr, "transcribe", slow_transcribe)
 
     async def run_two():
         transport = httpx.ASGITransport(app=main.app)

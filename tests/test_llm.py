@@ -14,7 +14,8 @@ def test_plain_reply_is_stored_in_history(fake_client):
     history = []
     turn = llm.run_turn(history, "hello", client=client)
 
-    assert turn == {"reply": "Hi there!", "actions": []}
+    assert turn["reply"] == "Hi there!" and turn["actions"] == []
+    assert len(turn["timings"]["llm_rounds_ms"]) == 1
     assert history == [{"role": "user", "content": "hello"},
                        {"role": "assistant", "content": "Hi there!"}]
 
@@ -78,6 +79,7 @@ def test_max_rounds_returns_fallback_and_still_records_history(fake_client):
 
     assert turn["reply"] == llm.FALLBACK_REPLY
     assert len(turn["actions"]) == config.MAX_TOOL_ROUNDS
+    assert len(turn["timings"]["llm_rounds_ms"]) == config.MAX_TOOL_ROUNDS
     assert history[-1] == {"role": "assistant", "content": llm.FALLBACK_REPLY}
 
 

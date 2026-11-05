@@ -1,6 +1,7 @@
 """LLM stage: transcript -> reply text, deciding whether to call tools along the way."""
 import json
 import logging
+import time
 from functools import lru_cache
 from typing import Any
 
@@ -68,22 +69,27 @@ def run_turn(history: list[dict], user_text: str, client=None) -> dict:
     client = client or _default_client()
     messages = [{"role": "system", "content": SYSTEM_PROMPT}, *history, {"role": "user", "content": user_text}]
     actions = []
+    # Latency of each model round trip, and total time spent executing tools, in milliseconds.
+    timings = {"llm_rounds_ms": [], "tools_ms": 0.0}
 
     for _ in range(config.MAX_TOOL_ROUNDS):
+        started = time.perf_counter()
         response = client.chat.completions.create(
             model=config.LLM_MODEL,
             messages=messages,
             tools=tools.TOOLS,
             temperature=config.LLM_TEMPERATURE,
         )
+        timings["llm_rounds_ms"].append(_elapsed_ms(started))
         message = response.choices[0].message
 
         if not message.tool_calls:
             reply_text = message.content or ""
             _remember(history, user_text, reply_text)
-            return {"reply": reply_text, "actions": actions}
+            return {"reply": reply_text, "actions": actions, "timings": timings}
 
         messages.append(message.model_dump(exclude_none=True))
+        started = time.perf_counter()
         for call in message.tool_calls:
             args, result = _execute_tool_call(call.function.name, call.function.arguments)
             actions.append({"tool": call.function.name, "args": args, "result": result})
@@ -92,7 +98,12 @@ def run_turn(history: list[dict], user_text: str, client=None) -> dict:
                 "tool_call_id": call.id,
                 "content": json.dumps(result),
             })
+        timings["tools_ms"] += _elapsed_ms(started)
 
     # Still record the turn, so the next turn keeps the conversational context.
     _remember(history, user_text, FALLBACK_REPLY)
-    return {"reply": FALLBACK_REPLY, "actions": actions}
+    return {"reply": FALLBACK_REPLY, "actions": actions, "timings": timings}
+
+
+def _elapsed_ms(started: float) -> float:
+    return round((time.perf_counter() - started) * 1000, 1)

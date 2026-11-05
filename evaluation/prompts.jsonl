@@ -1,0 +1,50 @@
+{"id": "t01", "category": "time", "text": "What time is it?", "expected_tool": "get_current_time", "expected_args": {}}
+{"id": "t02", "category": "time", "text": "What's today's date?", "expected_tool": "get_current_time", "expected_args": {}}
+{"id": "t03", "category": "time", "text": "Can you tell me the current time, please?", "expected_tool": "get_current_time", "expected_args": {}}
+{"id": "t04", "category": "time", "text": "What day of the week is it today?", "expected_tool": "get_current_time", "expected_args": {}}
+{"id": "t05", "category": "time", "text": "How late is it right now?", "expected_tool": "get_current_time", "expected_args": {}}
+{"id": "c01", "category": "calculate", "text": "What's 23 times 17?", "expected_tool": "calculate", "expected_args": {"result": 391}}
+{"id": "c02", "category": "calculate", "text": "What is 144 divided by 12?", "expected_tool": "calculate", "expected_args": {"result": 12}}
+{"id": "c03", "category": "calculate", "text": "Calculate 15 percent of 80.", "expected_tool": "calculate", "expected_args": {"result": 12}}
+{"id": "c04", "category": "calculate", "text": "What's 2 to the power of 10?", "expected_tool": "calculate", "expected_args": {"result": 1024}}
+{"id": "c05", "category": "calculate", "text": "Add 345 and 678.", "expected_tool": "calculate", "expected_args": {"result": 1023}}
+{"id": "c06", "category": "calculate", "text": "What's 1000 minus 357?", "expected_tool": "calculate", "expected_args": {"result": 643}}
+{"id": "c07", "category": "calculate", "text": "What is 7 times 8 plus 6?", "expected_tool": "calculate", "expected_args": {"result": 62}}
+{"id": "c08", "category": "calculate", "text": "If I split 90 euros between 4 people, how much does each person pay?", "expected_tool": "calculate", "expected_args": {"result": 22.5}}
+{"id": "w01", "category": "weather", "text": "What's the weather in Berlin?", "expected_tool": "get_weather", "expected_args": {"city": "berlin"}}
+{"id": "w02", "category": "weather", "text": "Is it going to rain in Munich today?", "expected_tool": "get_weather", "expected_args": {"city": "munich"}}
+{"id": "w03", "category": "weather", "text": "How's the weather in New York right now?", "expected_tool": "get_weather", "expected_args": {"city": "new york"}}
+{"id": "w04", "category": "weather", "text": "What's the temperature in Hamburg?", "expected_tool": "get_weather", "expected_args": {"city": "hamburg"}}
+{"id": "w05", "category": "weather", "text": "Tell me the weather forecast for Saarbrücken.", "expected_tool": "get_weather", "expected_args": {"city": "saarbr"}}
+{"id": "w06", "category": "weather", "text": "Do I need a jacket in Dhaka today?", "expected_tool": "get_weather", "expected_args": {"city": "dhaka"}}
+{"id": "r01", "category": "reminder", "text": "Remind me to call mom in 20 minutes.", "expected_tool": "set_reminder", "expected_args": {"minutes": 20, "text": "mom"}}
+{"id": "r02", "category": "reminder", "text": "Set a reminder to take my medicine in 2 hours.", "expected_tool": "set_reminder", "expected_args": {"minutes": 120, "text": "medicine"}}
+{"id": "r03", "category": "reminder", "text": "In 45 minutes, remind me to check the oven.", "expected_tool": "set_reminder", "expected_args": {"minutes": 45, "text": "oven"}}
+{"id": "r04", "category": "reminder", "text": "Remind me about the team meeting in half an hour.", "expected_tool": "set_reminder", "expected_args": {"minutes": 30, "text": "meeting"}}
+{"id": "r05", "category": "reminder", "text": "Please remind me to water the plants in 10 minutes.", "expected_tool": "set_reminder", "expected_args": {"minutes": 10, "text": "plants"}}
+{"id": "r06", "category": "reminder", "text": "Can you set a reminder for 5 minutes from now to stretch?", "expected_tool": "set_reminder", "expected_args": {"minutes": 5, "text": "stretch"}}
+{"id": "r07", "category": "reminder", "text": "Remind me to send the invoice in an hour and a half.", "expected_tool": "set_reminder", "expected_args": {"minutes": 90, "text": "invoice"}}
+{"id": "r08", "category": "reminder", "text": "I need a reminder in 15 minutes to join the call.", "expected_tool": "set_reminder", "expected_args": {"minutes": 15, "text": "call"}}
+{"id": "n01", "category": "no_tool", "text": "Hi, how are you?", "expected_tool": null, "expected_args": {}}
+{"id": "n02", "category": "no_tool", "text": "Tell me a fun fact about octopuses.", "expected_tool": null, "expected_args": {}}
+{"id": "n03", "category": "no_tool", "text": "What's the capital of France?", "expected_tool": null, "expected_args": {}}
+{"id": "n04", "category": "no_tool", "text": "Thanks, that's all for now.", "expected_tool": null, "expected_args": {}}
+{"id": "n05", "category": "no_tool", "text": "Can you explain what a voice assistant is in one sentence?", "expected_tool": null, "expected_args": {}}
+{"id": "n06", "category": "no_tool", "text": "Tell me a short joke.", "expected_tool": null, "expected_args": {}}
+{"id": "n07", "category": "no_tool", "text": "What's a good name for a cat?", "expected_tool": null, "expected_args": {}}
+{"id": "n08", "category": "no_tool", "text": "How do you say thank you in German?", "expected_tool": null, "expected_args": {}}
+{"id": "x01", "category": "noisy", "text": "What's 12 times 12?", "expected_tool": "calculate", "expected_args": {"result": 144}, "instructions": "Play music in the background at a normal listening volume."}
+{"id": "x02", "category": "noisy", "text": "What's the weather in Berlin?", "expected_tool": "get_weather", "expected_args": {"city": "berlin"}, "instructions": "Play a podcast or video with talking in the background."}
+{"id": "x03", "category": "noisy", "text": "Remind me to buy milk in 30 minutes.", "expected_tool": "set_reminder", "expected_args": {"minutes": 30, "text": "milk"}, "instructions": "Play a podcast or video with talking in the background."}
+{"id": "x04", "category": "noisy", "text": "What time is it?", "expected_tool": "get_current_time", "expected_args": {}, "instructions": "Turn on a fan or open a window to street noise."}
+{"id": "x05", "category": "noisy", "text": "Tell me a fun fact about the moon.", "expected_tool": null, "expected_args": {}, "instructions": "Play music in the background at a normal listening volume."}
+{"id": "x06", "category": "noisy", "text": "What is 250 plus 175?", "expected_tool": "calculate", "expected_args": {"result": 425}, "instructions": "Speak quietly, about an arm's length from the microphone."}
+{"id": "p01", "category": "pause", "text": "Remind me to, um, call the dentist in 40 minutes.", "expected_tool": "set_reminder", "expected_args": {"minutes": 40, "text": "dentist"}, "instructions": "Pause about one second at 'um' before continuing."}
+{"id": "p02", "category": "pause", "text": "What's the weather in... Munich?", "expected_tool": "get_weather", "expected_args": {"city": "munich"}, "instructions": "Pause about one second before 'Munich'."}
+{"id": "p03", "category": "pause", "text": "What's 48 times... 25?", "expected_tool": "calculate", "expected_args": {"result": 1200}, "instructions": "Pause about one second before '25'."}
+{"id": "p04", "category": "pause", "text": "Set a reminder in 25 minutes to... pick up the package.", "expected_tool": "set_reminder", "expected_args": {"minutes": 25, "text": "package"}, "instructions": "Pause about one second before 'pick up'."}
+{"id": "p05", "category": "pause", "text": "Can you tell me... what time it is?", "expected_tool": "get_current_time", "expected_args": {}, "instructions": "Pause about one second before 'what time'."}
+{"id": "p06", "category": "pause", "text": "I want to know the weather in, uh, Hamburg.", "expected_tool": "get_weather", "expected_args": {"city": "hamburg"}, "instructions": "Pause about one second at 'uh' before 'Hamburg'."}
+{"id": "s01", "category": "silence", "text": "", "expected_tool": null, "expected_args": {}, "instructions": "Stay silent for about 3 seconds."}
+{"id": "s02", "category": "silence", "text": "", "expected_tool": null, "expected_args": {}, "instructions": "Don't speak; tap the desk or rustle paper for about 3 seconds."}
+{"id": "s03", "category": "silence", "text": "", "expected_tool": null, "expected_args": {}, "instructions": "Don't speak; cough or clear your throat once, then wait about 2 seconds."}

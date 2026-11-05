@@ -27,8 +27,13 @@ MAX_HISTORY_MESSAGES = int(os.getenv("MAX_HISTORY_MESSAGES", "20"))
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "small")
 WHISPER_DEVICE = os.getenv("WHISPER_DEVICE", "cpu")
 WHISPER_COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
+# Fixed language code (e.g. "en", "de"); empty = auto-detect, which is unreliable on 1-3 s clips.
+WHISPER_LANGUAGE = os.getenv("WHISPER_LANGUAGE", "en") or None
 # Segments whose no-speech probability exceeds this are treated as silence.
 NO_SPEECH_THRESHOLD = float(os.getenv("NO_SPEECH_THRESHOLD", "0.6"))
 
 # TTS (espeak-ng)
 ESPEAK_BINARY = os.getenv("ESPEAK_BINARY", "espeak-ng")
+
+# Load the Whisper model when the server starts rather than on the first request.
+PRELOAD_MODELS = os.getenv("PRELOAD_MODELS", "1") == "1"

@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Evaluation recordings are the author's voice; kept local unless deliberately published.
+evaluation/audio/

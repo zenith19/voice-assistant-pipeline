@@ -20,6 +20,10 @@ def transcribe(audio_bytes: bytes) -> str:
     flags as probable non-speech are discarded - this stops Whisper from inventing text
     (e.g. "Thank you for watching") on silent or noise-only recordings.
     """
-    segments, _info = _model().transcribe(io.BytesIO(audio_bytes), vad_filter=True)
+    segments, _info = _model().transcribe(io.BytesIO(audio_bytes), vad_filter=True, language=config.WHISPER_LANGUAGE)
     kept = [s.text for s in segments if s.no_speech_prob < config.NO_SPEECH_THRESHOLD]
     return "".join(kept).strip()
+
+
+def preload() -> None:
+    _model()

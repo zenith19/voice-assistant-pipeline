@@ -86,6 +86,16 @@ Try things like:
 
 Click **Reset conversation** to clear the assistant's memory of the current session.
 
+## Evaluation
+
+`evaluation/` holds an offline evaluation on 50 recorded utterances: word error rate,
+tool-call accuracy, false tool calls on chit-chat, silence rejection, and p50/p95 latency per
+stage, with a simulated telephony condition and a text-only mode that separates ASR errors
+from LLM errors. See [evaluation/README.md](evaluation/README.md).
+
+Every `/chat` response also includes per-stage `timings`, shown under each turn in the UI and
+logged as one JSON line per turn on the server.
+
 ## Tests
 
 ```bash
